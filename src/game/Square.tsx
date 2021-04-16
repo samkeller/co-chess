@@ -25,15 +25,19 @@ class Square extends React.Component<any, any> {
 
     getPieceHTML(piece: Piece) {
         return (
-            <div style={{ position: "absolute", ...this.style.piece }} onDragEnd={e => piece.move(e)}>
-                <span style={this.style.pieceImg} className={piece.imgClass}></span>
+            <div style={{ position: "absolute", ...this.style.piece }} >
+                <span draggable="true" onDragStart={piece.registerCoords.bind(piece)} onDragEnd={piece.move.bind(piece)} style={this.style.pieceImg} className={piece.imgClass}></span>
             </div>
         )
     }
 
     render() {
+
         return (
-            <div className={this.props.color} style={{ float: "left", ...this.style.square }}>
+            <div
+                id={"x" + this.props.data.index_column_X + '-y' + this.props.data.index_line_Y}
+                className={this.props.color}
+                style={{ float: "left", ...this.style.square }}>
                 {this.piece !== null && (
                     this.getPieceHTML(this.piece)
                 )}
