@@ -1,4 +1,4 @@
-import EmptyBoard from "./lib/EmptyBoard"
+import EmptyBoard from "../lib/EmptyBoard"
 
 export default class ChessBoard{
 
