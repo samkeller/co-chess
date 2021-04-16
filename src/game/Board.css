@@ -5,3 +5,17 @@
 .green{
     background-color: rgb(51, 180, 51);
 }
+
+
+.lpawn{
+    background-image: url("./lib/pieces/img/Chess_plt60.png");
+}
+.dpawn{
+    background-image: url("./lib/pieces/img/Chess_pdt60.png");
+}
+/* 
+.lpawn{
+    background-image: url("./lib/pieces/img/Chess_plt60.png");
+}.lpawn{
+    background-image: url("./lib/pieces/img/Chess_plt60.png");
+} */

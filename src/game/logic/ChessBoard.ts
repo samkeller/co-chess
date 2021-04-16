@@ -1,7 +1,8 @@
-import EmptyBoard from "../lib/EmptyBoard"
+import Piece from "../lib/pieces/Piece";
+import StartBoard from "../lib/StartBoard"
 
 export default class ChessBoard{
 
-    constructor(public board: Array<Array<any>> = EmptyBoard){}
+    constructor(public board: Array<Array<Piece | null>> = StartBoard){}
    
 }

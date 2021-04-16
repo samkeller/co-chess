@@ -1,4 +1,4 @@
-const EmptyBoard = [
+const StartBoard = [
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
     [null, null, null, null, null, null, null, null],
@@ -9,4 +9,4 @@ const EmptyBoard = [
     [null, null, null, null, null, null, null, null]
 ]
 
-export default EmptyBoard;
+export default StartBoard;
