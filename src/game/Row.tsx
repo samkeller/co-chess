@@ -6,10 +6,10 @@ class Row extends React.Component<any, any> {
     index_line_Y = this.props.data.index_line_Y;
 
     getCustomSquare(data: any, index_line_Y: number, index_column_X: number) {
-        const key =  index_column_X + "-" + index_line_Y
+        const key = index_column_X + "-" + index_line_Y
         const color = (index_column_X + index_line_Y) % 2 ? "white" : "green"
 
-        return <Square key={key} color={color} data={{piece: data, index_line_Y, index_column_X }} />
+        return <Square key={key} color={color} data={{ piece: data, isHint: false, index_line_Y, index_column_X }} />
 
     }
 

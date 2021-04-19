@@ -1,6 +1,8 @@
+import { Grid } from "../game/lib/types/Grid"
 
 type State = {
-    grid: Array<Array<Piece | null>>
+    grid: Grid,
+    hints_grid: HintGrid
 }
 
 type Action = {

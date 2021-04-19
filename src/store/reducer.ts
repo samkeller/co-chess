@@ -1,8 +1,10 @@
 import StartBoard from "../game/lib/StartBoard"
 import * as actionTypes from "./actionTypes"
+import { Action, State } from "./type";
 
 const initialState: State = {
   grid: StartBoard,
+  hints_grid: StartBoard,
 }
 
 const reducer = (

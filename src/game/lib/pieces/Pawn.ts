@@ -1,16 +1,16 @@
-import IPiece from "../types/Ipiece";
 import Piece from "./Piece";
 
-export default class Pawn extends Piece implements IPiece {
-    constructor(color: Pawn_Color, position: Position){
+export default class Pawn extends Piece {
+    constructor(color: Pawn_Color, position: Position) {
         super("pawn", color, position)
     }
-    getPossibleMoves(): Position[] {
+    get possibleMoves(): Position[] {
         let r: Position[] = []
-
-        r.push({x: this.position.x, y: this.position.y++});
-
+        if (this.color === "l")
+            if (this.position.y + 1 < 8)
+                r.push({ x: this.position.x, y: this.position.y + 1 });
+        if (this.position.y === 1)
+            r.push({ x: this.position.x, y: this.position.y + 2 });
         return r
     }
-
 }
