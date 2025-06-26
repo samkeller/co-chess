@@ -1,12 +1,11 @@
-import { createStore, applyMiddleware, Store } from "redux"
-import thunk from "redux-thunk"
-import reducer from "./reducer"
-import { Action, DispatchType, State } from "./type";
+import { configureStore } from '@reduxjs/toolkit'
+import gridReducer from './gridSlice'
 
-const store: Store<State, Action> & {
-    dispatch: DispatchType
-} = createStore(reducer, applyMiddleware(thunk))
+const store = configureStore({
+    reducer: gridReducer,
+})
 
+export type RootState = ReturnType<typeof store.getState>
+export type AppDispatch = typeof store.dispatch
 
-
-export default store;
+export default store
