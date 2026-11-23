@@ -1,6 +1,7 @@
 import store from "../../../store/store"
 import * as actionTypes from "../../../store/actionTypes"
 import Settings from "../Settings";
+import { Grid } from "../types/Grid";
 
 
 export default abstract class Piece {
@@ -9,40 +10,43 @@ export default abstract class Piece {
 
     constructor(public name: string, public color: Pawn_Color, public position: Position) { }
 
-    get possibleMoves(): Position[] {
-        return [];
-    }
+    abstract get possibleMoves(): Position[]
 
     get imgClass() {
         return this.color + this.name;
     }
 
     onDragPieceEvent(e: React.DragEvent<HTMLDivElement>) {
+        console.log("dragging" + e)
+
         if (e === undefined)
             return;
-
         this.htmlPositions = { x: e.clientX, y: e.clientY }
-        // this.showHints();
+        this.showHints();
     }
 
-    
+
 
     move(e: React.DragEvent<HTMLDivElement>) {
-        console.log("trying to move");
-        
         const nextCoords: Position = this.getNextPosition(this.htmlPositions, { x: e.clientX, y: e.clientY });
 
         // TODO: Success/fail
-        let board = store.getState().grid;
+        let board: Grid = store.getState().grid;
 
         const actualCoords = this.toArrayCoords(this.position);
-        board[actualCoords.x][actualCoords.y] = null;
+        board[actualCoords.x][actualCoords.y] = {
+            ...board[actualCoords.x][actualCoords.y],
+            piece: null
+        };
         // Resetting hints BEFORE moving.
-        // this.hideHints();
+        this.hideHints();
 
         this.position = nextCoords;
         const nextArrayCoords = this.toArrayCoords(nextCoords);
-        board[nextArrayCoords.x][nextArrayCoords.y] = this;
+        board[nextArrayCoords.x][nextArrayCoords.y] = {
+            ...board[actualCoords.x][actualCoords.y],
+            piece: this
+        };;
 
 
         store.dispatch({ type: actionTypes.CHANGE_GRID, payload: { grid: board } })
@@ -69,27 +73,38 @@ export default abstract class Piece {
     toArrayCoords(coords: Position) {
         return { x: 7 - coords.y, y: coords.x }
     }
+    private get getBoard() {
+        // Copie profonde du tableau principal et de chaque ligne
+        const grid = store.getState().grid;
+        return grid.map(row => [...row]);
+    }
 
+    public showHints() {
+        let board: Grid = this.getBoard;
 
-    // public showHints() {
-    //     let board = store.getState().grid;
+        for (const move of this.possibleMoves) {
+            let gridCoords = this.toArrayCoords(move);
+            board[gridCoords.x][gridCoords.y] = {
+                ...board[gridCoords.x][gridCoords.y],
+                hint: true
+            };
+        }
 
-    //     for (const move of this.possibleMoves) {
-    //         let gridCoords = this.toArrayCoords(move);
-    //         board[gridCoords.x][gridCoords.y] = true;
-    //     }
+        console.log(board)
+        store.dispatch({ type: actionTypes.CHANGE_GRID, payload: { grid: board } })
+    }
 
-    //     store.dispatch({ type: actionTypes.CHANGE_GRID, payload: { grid: board } })
-    // }
+    private hideHints() {
+        let board = store.getState().grid;
 
-    // private hideHints(){
-    //     let board = store.getState().grid;
+        for (const move of this.possibleMoves) {
+            let gridCoords = this.toArrayCoords(move);
+            board[gridCoords.x][gridCoords.y] = {
+                ...board[gridCoords.x][gridCoords.y],
+                hint: false
+            };
+        }
 
-    //     for (const move of this.possibleMoves) {
-    //         let gridCoords = this.toArrayCoords(move);
-    //         board[gridCoords.x][gridCoords.y].hint = false;
-    //     }
-
-    //     store.dispatch({ type: actionTypes.CHANGE_GRID, payload: { grid: board } })
-    // }
+        store.dispatch({ type: actionTypes.CHANGE_GRID, payload: { grid: board } })
+    }
 }

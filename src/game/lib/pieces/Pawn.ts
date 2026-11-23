@@ -11,6 +11,8 @@ export default class Pawn extends Piece {
                 r.push({ x: this.position.x, y: this.position.y + 1 });
         if (this.position.y === 1)
             r.push({ x: this.position.x, y: this.position.y + 2 });
+
+        console.log("pawn moves : ", r)
         return r
     }
 }

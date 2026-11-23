@@ -9,7 +9,7 @@ class Row extends React.Component<any, any> {
         const key = index_column_X + "-" + index_line_Y
         const color = (index_column_X + index_line_Y) % 2 ? "white" : "green"
 
-        return <Square key={key} color={color} data={{ piece: data, isHint: false, index_line_Y, index_column_X }} />
+        return <Square key={key} color={color} data={{ piece: data.piece, isHint: false, index_line_Y, index_column_X }} />
 
     }
 
