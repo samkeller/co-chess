@@ -1,6 +1,6 @@
 import { registry } from '@co-chess/bots';
 import type { Side } from '@co-chess/core';
-import { Button, Paper, Select, Stack, Text, Title } from '@mantine/core';
+import { Button, Paper, Select, Stack, Title } from '@mantine/core';
 import { useState, type FormEvent } from 'react';
 import { sideName } from './describe-result.ts';
 import { SideSwatch } from './PlayerPlate.tsx';
