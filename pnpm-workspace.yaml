@@ -1,0 +1,11 @@
+packages:
+  - packages/*
+  - apps/*
+
+catalog:
+  '@types/node': ^26.6.6
+  typescript: ~7.0.2
+  vitest: ^5.1.1
+
+minimumReleaseAgeExclude:
+  - react-chessboard@5.12.4
