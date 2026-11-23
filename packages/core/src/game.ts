@@ -25,6 +25,8 @@ export interface GameSnapshot {
   readonly status: GameStatus;
   readonly fen: string;
   readonly turn: Side;
+  /** Le Camp au trait est-il en échec ? */
+  readonly inCheck: boolean;
   readonly history: readonly Move[];
   /** Les coups en notation algébrique standard, pour l'affichage. */
   readonly sanMoves: readonly string[];
@@ -221,6 +223,7 @@ export class Game {
       status,
       fen: this.position.fen,
       turn: this.position.turn,
+      inCheck: this.position.inCheck,
       history: Object.freeze(history),
       sanMoves: Object.freeze(this.position.sanHistory),
       lastMove: history.at(-1) ?? null,

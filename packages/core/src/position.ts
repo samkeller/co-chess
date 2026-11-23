@@ -78,6 +78,11 @@ export class Position {
     return this.chess.fen();
   }
 
+  /** Le Camp au trait est-il en échec ? */
+  get inCheck(): boolean {
+    return this.chess.inCheck();
+  }
+
   /** Le résultat si la partie est terminée sur l'échiquier, sinon `null`. */
   result(): BoardResult | null {
     const c = this.chess;

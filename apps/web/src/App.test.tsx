@@ -1,10 +1,25 @@
 import { registry } from '@co-chess/bots';
 import type { Player } from '@co-chess/core';
-import { render, screen, within } from '@testing-library/react';
+import { MantineProvider } from '@mantine/core';
+import { render as renderDom, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { expect, test } from 'vitest';
 import { App } from './App.tsx';
 import type { BotFactory } from './players/choice.ts';
+import { theme } from './theme.ts';
+
+const render = (ui: React.ReactNode) =>
+  renderDom(
+    <MantineProvider theme={theme} env="test">
+      {ui}
+    </MantineProvider>,
+  );
+
+/** Choisit `option` dans la liste déroulante `label` (un Select Mantine). */
+async function choose(user: ReturnType<typeof userEvent.setup>, label: string, option: string) {
+  await user.click(screen.getByRole('combobox', { name: label }));
+  await user.click(screen.getByRole('option', { name: option }));
+}
 
 /** Comme un vrai Worker, chaque réponse arrive dans une tâche séparée. */
 const nextTask = () => new Promise((resolve) => setTimeout(resolve, 0));
@@ -47,8 +62,8 @@ test('on choisit deux Bots, on lance la Partie, on la regarde et on la contrôle
   const user = userEvent.setup();
   render(<App createBot={inThread} initialMoveDelayMs={0} />);
 
-  await user.selectOptions(screen.getByLabelText('Blancs'), 'Aléatoire');
-  await user.selectOptions(screen.getByLabelText('Noirs'), 'Glouton');
+  await choose(user, 'Blancs', 'Aléatoire');
+  await choose(user, 'Noirs', 'Glouton');
   await user.click(screen.getByRole('button', { name: 'Lancer la partie' }));
 
   await screen.findByText(/Trait aux/);
@@ -70,11 +85,10 @@ test('le résultat et les coups s’affichent en fin de Partie', async () => {
   await user.click(screen.getByRole('button', { name: 'Lancer la partie' }));
 
   expect(await screen.findByText('Échec et mat : les Noirs gagnent.')).toBeInTheDocument();
-  expect(
-    within(moveList())
-      .getAllByRole('listitem')
-      .map((li) => li.textContent),
-  ).toEqual(['f3 e5', 'g4 Qh4#']);
+  expect(within(moveList()).getAllByRole('listitem')).toHaveLength(2);
+  for (const san of ['f3', 'e5', 'g4', 'Qh4#']) {
+    expect(within(moveList()).getByText(san)).toBeInTheDocument();
+  }
 });
 
 const square = (id: string) => document.querySelector<HTMLElement>(`[data-square="${id}"]`)!;
@@ -83,8 +97,8 @@ test('l’Humain joue en cliquant ; un coup illégal est ignoré ; le Bot répon
   const user = userEvent.setup();
   render(<App createBot={inThread} initialMoveDelayMs={0} />);
 
-  await user.selectOptions(screen.getByLabelText('Blancs'), 'Humain');
-  await user.selectOptions(screen.getByLabelText('Noirs'), 'Glouton');
+  await choose(user, 'Blancs', 'Humain');
+  await choose(user, 'Noirs', 'Glouton');
   await user.click(screen.getByRole('button', { name: 'Lancer la partie' }));
   await screen.findByText('Trait aux Blancs.');
 
@@ -95,8 +109,8 @@ test('l’Humain joue en cliquant ; un coup illégal est ignoré ; le Bot répon
   await user.click(square('e2'));
   await user.click(square('e4'));
 
-  await expect
-    .poll(() => within(moveList()).queryAllByRole('listitem')[0]?.textContent)
-    .toMatch(/^e4 \S+/);
+  // Les Blancs ont joué e4, puis le Bot a répondu : c'est de nouveau aux Blancs.
   expect(await screen.findByText('Trait aux Blancs.')).toBeInTheDocument();
+  expect(within(moveList()).getByText('e4')).toBeInTheDocument();
+  expect(within(moveList()).getAllByRole('listitem')).toHaveLength(1);
 });

@@ -1,4 +1,5 @@
 import { DEFAULT_MOVE_DELAY_MS } from '@co-chess/core';
+import { AppShell, Container, Group, Image, Title } from '@mantine/core';
 import { useState } from 'react';
 import { GameScreen } from './GameScreen.tsx';
 import { workerBotFactory, type BotFactory } from './players/choice.ts';
@@ -17,18 +18,32 @@ export function App({
   const [matchup, setMatchup] = useState<Matchup | null>(null);
 
   return (
-    <main>
-      <h1>Co-Chess</h1>
-      {matchup ? (
-        <GameScreen
-          matchup={matchup}
-          createBot={createBot}
-          initialMoveDelayMs={initialMoveDelayMs}
-          onNewGame={() => setMatchup(null)}
-        />
-      ) : (
-        <SetupForm onStart={setMatchup} />
-      )}
-    </main>
+    <AppShell header={{ height: 64 }} padding="lg">
+      <AppShell.Header>
+        <Container size="lg" h="100%">
+          <Group h="100%" gap="sm">
+            <Image src="/favicon.svg" w={30} h={30} alt="" />
+            <Title order={1} size="h3">
+              Co-Chess
+            </Title>
+          </Group>
+        </Container>
+      </AppShell.Header>
+
+      <AppShell.Main>
+        <Container size="lg">
+          {matchup ? (
+            <GameScreen
+              matchup={matchup}
+              createBot={createBot}
+              initialMoveDelayMs={initialMoveDelayMs}
+              onNewGame={() => setMatchup(null)}
+            />
+          ) : (
+            <SetupForm onStart={setMatchup} />
+          )}
+        </Container>
+      </AppShell.Main>
+    </AppShell>
   );
 }

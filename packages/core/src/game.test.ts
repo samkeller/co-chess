@@ -32,6 +32,16 @@ describe('Game', () => {
     expect(snapshot.lastMove).toEqual({ from: 'd8', to: 'h4' });
   });
 
+  test('l’instantané indique quand le Camp au trait est en échec', async () => {
+    const game = new Game({ ...foolsMate(), moveDelayMs: 0 });
+    const checks: boolean[] = [];
+    game.subscribe(() => checks.push(game.getSnapshot().inCheck));
+
+    await game.start();
+
+    expect(checks).toEqual([false, false, false, false, true]);
+  });
+
   test('l’instantané donne la liste des coups en notation algébrique', async () => {
     const game = new Game({ ...foolsMate(), moveDelayMs: 0 });
 

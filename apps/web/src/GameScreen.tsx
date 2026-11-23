@@ -1,14 +1,29 @@
 import {
   DEFAULT_MOVE_TIMEOUT_MS,
   Game,
+  material,
   type GameSnapshot,
   type Player,
   type Side,
 } from '@co-chess/core';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import {
+  Button,
+  Divider,
+  Group,
+  List,
+  Paper,
+  ScrollArea,
+  SimpleGrid,
+  Slider,
+  Stack,
+  Text,
+} from '@mantine/core';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { Board } from './Board.tsx';
-import { describeResult, sideName } from './describe-result.ts';
-import { createPlayer, type BotFactory } from './players/choice.ts';
+import { sideName } from './describe-result.ts';
+import { PlayerPlate } from './PlayerPlate.tsx';
+import { createPlayer, type BotFactory, type PlayerChoice } from './players/choice.ts';
+import { HumanPlayer } from './players/human-player.ts';
 import type { Matchup } from './SetupForm.tsx';
 
 interface Props {
@@ -45,78 +60,152 @@ export function GameScreen({ matchup, createBot, initialMoveDelayMs, onNewGame }
 
   return (
     running && (
-      <GameView {...running} initialMoveDelayMs={initialMoveDelayMs} onNewGame={onNewGame} />
+      <GameView
+        {...running}
+        matchup={matchup}
+        initialMoveDelayMs={initialMoveDelayMs}
+        onNewGame={onNewGame}
+      />
     )
   );
 }
 
+const playerName = (choice: PlayerChoice) =>
+  choice.kind === 'human' ? 'Humain' : choice.preset.name;
+
 function GameView({
   game,
   players,
+  matchup,
   initialMoveDelayMs,
   onNewGame,
-}: Running & { initialMoveDelayMs: number; onNewGame: () => void }) {
+}: Running & { matchup: Matchup; initialMoveDelayMs: number; onNewGame: () => void }) {
   const snapshot = useSyncExternalStore(game.subscribe, game.getSnapshot);
   const [delay, setDelay] = useState(initialMoveDelayMs);
 
-  const changeDelay = (ms: number) => {
-    setDelay(ms);
-    game.setMoveDelay(ms);
-  };
+  // Le plateau est tourné vers l'Humain s'il y en a un seul ; on peut toujours le retourner.
+  const humanSides = (['white', 'black'] as const).filter((s) => players[s] instanceof HumanPlayer);
+  const [orientation, setOrientation] = useState<Side>(
+    humanSides.length === 1 ? humanSides[0]! : 'white',
+  );
+  const top: Side = orientation === 'white' ? 'black' : 'white';
+
+  const plate = (side: Side) => (
+    <PlayerPlate
+      side={side}
+      name={playerName(matchup[side])}
+      advantage={material(snapshot, side)}
+      toMove={snapshot.status !== 'over' && snapshot.turn === side}
+      thinking={
+        snapshot.status === 'running' &&
+        snapshot.turn === side &&
+        !(players[side] instanceof HumanPlayer)
+      }
+    />
+  );
 
   return (
-    <div className="game">
-      <Board snapshot={snapshot} players={players} animationMs={Math.min(300, delay * 0.8)} />
+    <Group align="flex-start" gap="xl" wrap="wrap" justify="center">
+      <Stack gap="xs" w="min(600px, 100%)">
+        {plate(top)}
+        <Board
+          snapshot={snapshot}
+          players={players}
+          orientation={orientation}
+          animationMs={Math.min(300, delay * 0.8)}
+          onNewGame={onNewGame}
+        />
+        {plate(orientation)}
+      </Stack>
 
-      <aside className="panel">
-        <p className="status" role="status">
-          {status(snapshot)}
-        </p>
+      <Paper withBorder p="md" w={300}>
+        <Stack gap="md">
+          <Text fw={600} role="status">
+            {status(snapshot)}
+          </Text>
 
-        <div className="controls">
-          <label>
-            Délai entre les coups : {delay} ms
-            <input
-              type="range"
+          <div>
+            <Text size="sm" mb={4}>
+              Délai entre les coups : {delay} ms
+            </Text>
+            <Slider
               min={0}
               max={2000}
               step={100}
               value={delay}
-              onChange={(e) => changeDelay(Number(e.target.value))}
+              onChange={(ms) => {
+                setDelay(ms);
+                game.setMoveDelay(ms);
+              }}
+              label={(ms) => `${ms} ms`}
+              aria-label="Délai entre les coups"
             />
-          </label>
-          {snapshot.status === 'paused' ? (
-            <button onClick={() => game.resume()}>Reprendre</button>
-          ) : (
-            <button onClick={() => game.pause()} disabled={snapshot.status !== 'running'}>
-              Pause
-            </button>
-          )}
-          <button onClick={onNewGame}>Nouvelle partie</button>
-        </div>
+          </div>
 
-        <MoveList moves={snapshot.sanMoves} />
-      </aside>
-    </div>
+          <Group grow>
+            {snapshot.status === 'paused' ? (
+              <Button onClick={() => game.resume()}>Reprendre</Button>
+            ) : (
+              <Button
+                variant="light"
+                onClick={() => game.pause()}
+                disabled={snapshot.status !== 'running'}
+              >
+                Pause
+              </Button>
+            )}
+            <Button variant="default" onClick={() => setOrientation(top)}>
+              Retourner
+            </Button>
+          </Group>
+          <Button variant="default" onClick={onNewGame}>
+            Nouvelle partie
+          </Button>
+
+          <Divider label="Coups" labelPosition="left" />
+          <MoveList moves={snapshot.sanMoves} />
+        </Stack>
+      </Paper>
+    </Group>
   );
 }
 
 function status(snapshot: GameSnapshot): string {
-  if (snapshot.result) return describeResult(snapshot.result);
+  if (snapshot.result) return 'Partie terminée.';
   if (snapshot.status === 'paused') return 'En pause.';
   return `Trait aux ${sideName(snapshot.turn)}.`;
 }
 
+/** La feuille de partie : coups numérotés, le dernier en évidence, défilement automatique. */
 function MoveList({ moves }: { moves: readonly string[] }) {
+  const viewport = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    viewport.current?.scrollTo({ top: viewport.current.scrollHeight });
+  }, [moves.length]);
+
   const rows: Array<[string, string | undefined]> = [];
   for (let i = 0; i < moves.length; i += 2) rows.push([moves[i]!, moves[i + 1]]);
+  const last = moves.length - 1;
+
   return (
-    <ol className="moves" aria-label="Coups joués">
-      {rows.map(([white, black], i) => (
-        <li key={i}>
-          {white} {black}
-        </li>
-      ))}
-    </ol>
+    <ScrollArea h={280} viewportRef={viewport}>
+      <List listStyleType="none" aria-label="Coups joués">
+        {rows.map(([white, black], i) => (
+          <List.Item key={i}>
+            <SimpleGrid cols={3} spacing={0} ff="monospace" fz="sm">
+              <Text c="dimmed" ff="monospace" fz="sm">
+                {i + 1}.
+              </Text>
+              <Text ff="monospace" fz="sm" c={2 * i === last ? 'brass' : undefined}>
+                {white}
+              </Text>
+              <Text ff="monospace" fz="sm" c={2 * i + 1 === last ? 'brass' : undefined}>
+                {black}
+              </Text>
+            </SimpleGrid>
+          </List.Item>
+        ))}
+      </List>
+    </ScrollArea>
   );
 }
