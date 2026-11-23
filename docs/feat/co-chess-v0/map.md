@@ -15,7 +15,7 @@ Une **v0 jouable dans le navigateur**, sur une base moderne et à jour. On chois
 - Préférence : pas de roue réinventée. On prend des libs éprouvées pour les règles et l'échiquier, et on garde le code maison pour ce qui fait la valeur du projet : les Joueurs, les Bots, l'orchestration.
 - Décision « navigateur ou client/serveur » **déléguée** à l'agent : il la tranche avec des arguments écrits, et l'humain peut la contester.
 - **Vision V2** (contexte, hors périmètre) : projet « fun » de dev, uniquement les échecs. Une centaine de parties visibles en même temps, génération automatique de Players, sélection naturelle, un vrai backend. La v0 ne doit pas l'empêcher : configuration des Bots sous forme de données sérialisables (génome), pool de Workers possible.
-- Hébergement et CI : **GitHub** (le remote `origin` pointe encore vers GitLab).
+- Hébergement et CI : **GitHub** (https://github.com/samkeller/co-chess).
 
 ## Decisions so far
 
@@ -35,6 +35,7 @@ Une **v0 jouable dans le navigateur**, sur une base moderne et à jour. On chois
 - [web : regarder une partie bot contre bot](issues/12-web-bot-contre-bot.md) : fait (Worker, configuration, échiquier, vitesse, pause, liste des coups, résultat). Vérification visuelle humaine en attente.
 - [web : l'Humain joue](issues/13-web-humain.md) : fait (`HumanPlayer`, clic ou glisser, coups légaux surlignés, promotion, orientation du plateau). Vérification visuelle humaine en attente.
 - [Guide « ajouter un bot », éprouvé par un troisième bot](issues/14-guide-ajouter-un-bot.md) : `docs/guides/ajouter-un-bot.md`, éprouvé par `MinimaxBot` (prof. 1 et 2). Ajout de `Position.undo()`.
+- [CI GitHub et bascule du remote](issues/15-ci-github.md) : CI GitHub Actions verte sur la [PR #1](https://github.com/samkeller/co-chess/pull/1). `.gitattributes` force le LF.
 
 ## Not yet specified
 
